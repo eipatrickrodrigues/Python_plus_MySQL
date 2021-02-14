@@ -1,7 +1,8 @@
 # uic lê o arquivo .ui // QtWidgets monta os componentes na tela
 from PyQt5 import uic, QtWidgets
 import mysql.connector
-from reportlab.pdfgen import canvas 
+from reportlab.pdfgen import canvas
+import sqlite3
 
 # Conexão com o Banco de Dados
 banco = mysql.connector.connect(
@@ -11,6 +12,30 @@ banco = mysql.connector.connect(
     password='',
     database='cadastro_produtos'
 )
+
+# Login no Sistema
+def show_form_logged():
+
+    # Definição do usuário e senha
+    login.label_4.setText('')
+    user = login.lineEdit.text()
+    password = login.lineEdit_2.text()
+
+    # Validação do usuário e senha 
+    try:
+        cursor = banco.cursor()
+        query = "SELECT pass FROM cadastro_produtos.usuarios WHERE usuario = '{}'".format(user)
+        cursor.execute(query)
+        pass_to_confirm = cursor.fetchall()[0][0]
+
+        if password == pass_to_confirm:
+            login.close()
+            form.show()
+
+    except:
+        print('Erro na validação de dados')
+        login.label_4.setText('Dados incorretos.')
+
 
 # Emissão do documento em PDF
 def create_pdf():
@@ -49,31 +74,21 @@ def principal_function():
     line2 = form.lineEdit_2.text()
     line3 = form.lineEdit_3.text()
     category = ''
-    
-    print('Produto: ',line1)
-    print('Preço: ',line2)
-    print('Código: ',line3)
 
     if form.radioButton.isChecked():
-        print('Perecíveis selecionado.')
-        category = 'Perecíveis'
+        category = "Perecíveis"
     if form.radioButton_2.isChecked():
-        print('Álcool selecionado.')
-        category = 'Álcool'
+        category = "Álcool"
     if form.radioButton_3.isChecked():
-        print('Não perecíveis selecionado.')
-        category = 'Não Perecíveis'
+        category = "Não Perecíveis"
     if form.radioButton_4.isChecked():
-        print('Bebidas selecionado.')
-        category = 'Bebidas'
+        category = "Bebidas"
     if form.radioButton_5.isChecked():
-        print('Pet selecionado.')
-        category = 'Pet'
+        category = "Pet"
     if form.radioButton_6.isChecked():
-        print('Utensílhos selecionado.')
-        category = 'Utensílhos'
+        category = "Utensílhos"
 
-    # Comandos ao MySQL
+    # Cadastro de produtos
     cursor = banco.cursor()
     query = "INSERT INTO produtos (produto, preco, codigo, categoria) VALUES (%s,%s,%s,%s)"
     dados = (str(line1), str(line2), str(line3), category)
@@ -89,6 +104,7 @@ def show_data_list():
     
     # Comandos ao MySQL
     
+    form.close()
     data_list.show()
     cursor = banco.cursor()
     query = "SELECT * FROM produtos"
@@ -122,6 +138,7 @@ def delete_data():
 
 
 def update_data():
+    data_list.close()
     number_line = data_list.tableWidget.currentRow()
     
     # Edição de dados no banco
@@ -136,25 +153,130 @@ def update_data():
     data_to_update = cursor.fetchall()
     
     update_form.show()
-    update_form.lineEdit.setText(str(data_to_update[0][1]))
-    update_form.lineEdit_2.setText(str(data_to_update[0][2]))
-    update_form.lineEdit_3.setText(str(data_to_update[0][3]))
-    update_form.lineEdit_4.setText(str(data_to_update[0][4]))
+    update_form.lineEdit.setText(str(data_to_update[0][1])) # Produto
+    update_form.lineEdit_2.setText(str(data_to_update[0][2])) # Preço
+    update_form.lineEdit_3.setText(str(data_to_update[0][3])) # Código
 
-    # parou aqui
+
+    if update_form.radioButton.text() == 'Perecíveis':
+        update_form.radioButton.setSelected()
+    if update_form.radioButton_2.text() == 'Álcool':
+        update_form.radioButton_2.setSelected()
+    if update_form.radioButton_3.text() == 'Não Perecíveis':
+        update_form.radioButton_3.setSelected()
+    if update_form.radioButton_4.text() == 'Bebidas':
+        update_form.radioButton_4.setSelected()
+    if update_form.radioButton_5.text() == 'Pet':
+        update_form.radioButton_5.setSelected()
+    if update_form.radioButton_6.text() == 'Utensílhos':
+        update_form.radioButton_6.setSelected()
+'''
+    # Obtendo dados para atualizar 
+
+    new_product = update_form.lineEdit.text()
+    new_price = update_form.lineEdit_2.text()
+    new_cod = update_form.lineEdit_3.text()
+
+    if form.radioButton.isChecked():
+        category = "Perecíveis"
+    if form.radioButton_2.isChecked():
+        category = "Álcool"
+    if form.radioButton_3.isChecked():
+        category = "Não Perecíveis"
+    if form.radioButton_4.isChecked():
+        category = "Bebidas"
+    if form.radioButton_5.isChecked():
+        category = "Pet"
+    if form.radioButton_6.isChecked():
+        category = "Utensílhos"
+    new_category = category
+
+    # Edição no Banco de Dados 
+    
+    cursor = banco.cursor()
+    query = (f"UPDATE produtos SET produto = {new_product}, preco = {new_price}, codigo = {new_cod}, categoria = {new_category} WHERE id = {id}")
+    
+    #cursor.execute(query)
+    #banco.commit()
+    '''
 
     
+def register():
+    user = register_form.lineEdit.text()
+    password = register_form.lineEdit_2.text()
+    confirmerd_password = register_form.lineEdit_3.text()
+    email = register_form.lineEdit_4.text()
 
+    if (password == confirmerd_password):
+        try:
+            cursor = banco.cursor()
+            query = 'INSERT INTO cadastro_produtos.usuarios (usuario, pass, email) VALUES (%s,%s,%s)'
+            dados = (str(user), (str(password)), str(email))
+            cursor.execute(query,dados)
+            banco.commit()
+            register_form.label_5.setText('Cadastro realizado com sucesso.')
+        except sqlite3.Error as erro:
+            print('Erro ao cadastrar: ',erro)
+            register_form.label_5.setText('Erro ao cadastrar.')
+    else:
+        register_form.label_5.setText('As senhas não podem ser diferentes.')
+
+#____________________________________________________
+# Controle te telas
+
+def back_to_login():
+    register_form.close()
+    login.show()
+
+def show_login():
+    form.close()
+    login.show()
+
+def show_register_form():
+    login.close()
+    register_form.show()
+
+def back_to_data_list():
+    update_form.close()
+    data_list.show()
+
+def back_to_form():
+    data_list.close()
+    form.show()
+
+#____________________________________________________
+
+# Declarações
 
 app = QtWidgets.QApplication([])
+login = uic.loadUi('login.ui')
 form = uic.loadUi('form.ui')
 data_list = uic.loadUi('data_list.ui')
 update_form = uic.loadUi('update.ui')
+register_form = uic.loadUi('cadastro.ui')
+
+# Chamadas
+#____________________________________________________
 form.pushButton.clicked.connect(principal_function)
 form.pushButton_2.clicked.connect(show_data_list)
+form.pushButton_3.clicked.connect(show_login) # Log Out
+#____________________________________________________
+login.pushButton.clicked.connect(show_form_logged) # Entra na página principal
+login.pushButton_2.clicked.connect(show_register_form) # Efetua o cadastro
+login.lineEdit_2.setEchoMode(QtWidgets.QLineEdit.Password) # Senha anônima
+#____________________________________________________
+register_form.pushButton.clicked.connect(register)
+register_form.pushButton_2.clicked.connect(back_to_login)
+#____________________________________________________
+update_form.pushButton.clicked.connect(update_data)
+update_form.pushButton_2.clicked.connect(back_to_data_list)
+#____________________________________________________
 data_list.pushButton.clicked.connect(create_pdf)
 data_list.pushButton_3.clicked.connect(delete_data)
 data_list.pushButton_2.clicked.connect(update_data)
+data_list.pushButton_4.clicked.connect(back_to_form)
+#____________________________________________________
+# Start 
 
-form.show()
+login.show()
 app.exec()
