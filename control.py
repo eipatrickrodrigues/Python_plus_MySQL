@@ -135,6 +135,7 @@ def delete_data():
     query_to_delete = ('DELETE FROM produtos WHERE id =' + (str(id)))
     cursor.execute(query_to_delete)
     banco.commit()
+    confirm_delete_form.close()
 
 
 def update_data():
@@ -160,7 +161,7 @@ def update_data():
     update_form.lineEdit_3.setText(str(data_to_update[0][3])) # Código
     category_to_confirm = (str(data_to_update[0][4])) #categoria
 
-    new_category = category_to_confirm
+
     if category_to_confirm == 'Perecíveis':
         update_form.radioButton.setChecked(True)
     elif category_to_confirm == 'Álcool':
@@ -178,9 +179,25 @@ def update_data():
     
     # Obtendo dados para atualizar 
 
+def save_update():
+
+    # Seleção do ID
+    number_line = data_list.tableWidget.currentRow()
+    data_list.tableWidget.removeRow(number_line)
+
+    cursor = banco.cursor()
+    query = 'SELECT id FROM produtos' # Seleciona o ID para execução da query
+    cursor.execute(query)
+    received_data = cursor.fetchall()
+    id = received_data[number_line][0]
+
+    print('teste')
     new_product = update_form.lineEdit.text()
+    print(new_product)
     new_price = update_form.lineEdit_2.text()
+    print(new_price)
     new_cod = update_form.lineEdit_3.text()
+    print(new_cod)
 
     new_category = ''
     if update_form.radioButton.isChecked():
@@ -197,13 +214,15 @@ def update_data():
         new_category = "Utensílhos"
     else:
         print('Erro no Update')
-
+    print(new_category)
     # Edição no Banco de Dados 
     
     cursor = banco.cursor()
-    query = (f"UPDATE produtos SET produto = '{new_product}', preco = '{new_price}', codigo = '{new_cod}', categoria = '{new_category}' WHERE id = '{id}'")
+    query = f"UPDATE produtos SET produto = '{new_product}', preco = '{new_price}', codigo = '{new_cod}', categoria = '{new_category}' WHERE id = '{id}';"
+    print(query)
     cursor.execute(query)
     banco.commit()
+
 
     
 def register():
@@ -245,9 +264,16 @@ def back_to_data_list():
     update_form.close()
     data_list.show()
 
+def back_to_data_list_2():
+    confirm_delete_form.close()
+    data_list.show()
+
 def back_to_form():
     data_list.close()
     form.show()
+
+def confirm_delete():
+    confirm_delete_form.show() 
 
 #____________________________________________________
 
@@ -259,6 +285,7 @@ form = uic.loadUi('form.ui')
 data_list = uic.loadUi('data_list.ui')
 update_form = uic.loadUi('update.ui')
 register_form = uic.loadUi('cadastro.ui')
+confirm_delete_form = uic.loadUi('confirm_delete.ui')
 
 # Chamadas
 #____________________________________________________
@@ -273,11 +300,14 @@ login.lineEdit_2.setEchoMode(QtWidgets.QLineEdit.Password) # Senha anônima
 register_form.pushButton.clicked.connect(register)
 register_form.pushButton_2.clicked.connect(back_to_login)
 #____________________________________________________
-update_form.pushButton.clicked.connect(update_data)
+update_form.pushButton.clicked.connect(save_update) # Salvar os dados modificados
 update_form.pushButton_2.clicked.connect(back_to_data_list)
 #____________________________________________________
+confirm_delete_form.pushButton.clicked.connect(delete_data) # Confirmação de exclusão
+confirm_delete_form.pushButton_2.clicked.connect(back_to_data_list_2)
+#____________________________________________________
 data_list.pushButton.clicked.connect(create_pdf)
-data_list.pushButton_3.clicked.connect(delete_data)
+data_list.pushButton_3.clicked.connect(confirm_delete)
 data_list.pushButton_2.clicked.connect(update_data)
 data_list.pushButton_4.clicked.connect(back_to_form)
 #____________________________________________________
