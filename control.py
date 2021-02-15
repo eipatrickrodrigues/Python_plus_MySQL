@@ -151,54 +151,59 @@ def update_data():
     query_to_update = ('SELECT * FROM produtos WHERE id =' + (str(id)))
     cursor.execute(query_to_update)
     data_to_update = cursor.fetchall()
-    
+    #data_to_update = [(id, produto, preço, código, categoria)]
+    #print(data_to_update[number_line][4]) = Categoria
+
     update_form.show()
     update_form.lineEdit.setText(str(data_to_update[0][1])) # Produto
     update_form.lineEdit_2.setText(str(data_to_update[0][2])) # Preço
     update_form.lineEdit_3.setText(str(data_to_update[0][3])) # Código
+    category_to_confirm = (str(data_to_update[0][4])) #categoria
 
-
-    if update_form.radioButton.text() == 'Perecíveis':
-        update_form.radioButton.setSelected()
-    if update_form.radioButton_2.text() == 'Álcool':
-        update_form.radioButton_2.setSelected()
-    if update_form.radioButton_3.text() == 'Não Perecíveis':
-        update_form.radioButton_3.setSelected()
-    if update_form.radioButton_4.text() == 'Bebidas':
-        update_form.radioButton_4.setSelected()
-    if update_form.radioButton_5.text() == 'Pet':
-        update_form.radioButton_5.setSelected()
-    if update_form.radioButton_6.text() == 'Utensílhos':
-        update_form.radioButton_6.setSelected()
-'''
+    new_category = category_to_confirm
+    if category_to_confirm == 'Perecíveis':
+        update_form.radioButton.setChecked(True)
+    elif category_to_confirm == 'Álcool':
+        update_form.radioButton_2.setChecked(True)
+    elif category_to_confirm == 'Não Perecíveis':
+        update_form.radioButton_3.setChecked(True)
+    elif category_to_confirm == 'Bebidas':
+        update_form.radioButton_4.setChecked(True)
+    elif category_to_confirm == 'Pet':
+        update_form.radioButton_5.setChecked(True)
+    elif category_to_confirm == 'Utensílhos':
+        update_form.radioButton_6.setChecked(True)
+    else:
+        print('Erro em Update Data')
+    
     # Obtendo dados para atualizar 
 
     new_product = update_form.lineEdit.text()
     new_price = update_form.lineEdit_2.text()
     new_cod = update_form.lineEdit_3.text()
 
-    if form.radioButton.isChecked():
-        category = "Perecíveis"
-    if form.radioButton_2.isChecked():
-        category = "Álcool"
-    if form.radioButton_3.isChecked():
-        category = "Não Perecíveis"
-    if form.radioButton_4.isChecked():
-        category = "Bebidas"
-    if form.radioButton_5.isChecked():
-        category = "Pet"
-    if form.radioButton_6.isChecked():
-        category = "Utensílhos"
-    new_category = category
+    new_category = ''
+    if update_form.radioButton.isChecked():
+        new_category = "Perecíveis"
+    elif update_form.radioButton_2.isChecked():
+        new_category = "Álcool"
+    elif update_form.radioButton_3.isChecked():
+        new_category = "Não Perecíveis"
+    elif update_form.radioButton_4.isChecked():
+        new_category = "Bebidas"
+    elif update_form.radioButton_5.isChecked():
+        new_category = "Pet"
+    elif update_form.radioButton_6.isChecked():
+        new_category = "Utensílhos"
+    else:
+        print('Erro no Update')
 
     # Edição no Banco de Dados 
     
     cursor = banco.cursor()
-    query = (f"UPDATE produtos SET produto = {new_product}, preco = {new_price}, codigo = {new_cod}, categoria = {new_category} WHERE id = {id}")
-    
-    #cursor.execute(query)
-    #banco.commit()
-    '''
+    query = (f"UPDATE produtos SET produto = '{new_product}', preco = '{new_price}', codigo = '{new_cod}', categoria = '{new_category}' WHERE id = '{id}'")
+    cursor.execute(query)
+    banco.commit()
 
     
 def register():
